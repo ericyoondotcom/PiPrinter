@@ -4,3 +4,8 @@ export const DISCORD_TOKEN = "XXXXX";
 export const API_ACCESS_TOKENS = [
     // "XXXXX"
 ];
+
+// A list of Discord channel IDs that the bot should print messages from.
+export const ALLOWED_DISCORD_CHANNELS = [
+
+];
