@@ -1,0 +1,25 @@
+{
+  "name": "piprinter",
+  "version": "1.0.0",
+  "description": "Server code for Raspberry Pi thermal printer.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yummypasta/PiPrinter.git"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/yummypasta/PiPrinter/issues"
+  },
+  "homepage": "https://github.com/yummypasta/PiPrinter#readme",
+  "dependencies": {
+    "discord.js": "^12.5.1",
+    "express": "^4.17.1",
+    "path": "^0.12.7"
+  }
+}
