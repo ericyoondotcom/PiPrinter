@@ -1,7 +1,7 @@
 import express from "express";
 import path from "path";
 
-import {API_ACCESS_TOKENS} from "../secrets.js";
+import {API_ACCESS_TOKENS} from "../config.js";
 
 const PORT = 1234;
 
