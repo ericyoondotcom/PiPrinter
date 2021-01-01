@@ -84,7 +84,7 @@ export default class Discord {
         context.drawImage(avatarCanvas, 0, 0);
         
         context.fillStyle = "#000000";
-        context.font = `500 ${FONT_SIZE}px "Whitney"`;
+        context.font = `${FONT_SIZE}px "Whitney Semibold"`;
         context.textAlign = "left";
         context.fillText(msg.author.username, BODY_TEXT_MARGIN_LEFT, FONT_SIZE);
 
