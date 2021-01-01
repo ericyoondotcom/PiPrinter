@@ -97,22 +97,7 @@ export default class Discord {
             context.fillText(t, BODY_TEXT_MARGIN_LEFT, BODY_TEXT_MARGIN_TOP + ((i + 1) * FONT_SIZE));
         }
 
-        // Cropping code modified from https://stackoverflow.com/questions/11796554/automatically-crop-html5-canvas-to-contents
-        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-        let maxY = 0;
-        for(let y = 0; y < canvas.height; y++){
-            for(let x = 0; x < canvas.width; x++){
-                const index = (y * canvas.width + x) * 4;
-                const r = imageData.data[index];
-                const g = imageData.data[index + 1];
-                const b = imageData.data[index + 2];
-                const a = imageData.data[index + 3];
-                if(a > 0 && (r != 255 || g != 255 || b != 255)){
-                    maxY = y;
-                    break;
-                }
-            }
-        }
+        const maxY = Math.max(AVATAR_SIZE, BODY_TEXT_MARGIN_TOP + (split.length * FONT_SIZE) + 5);
         let cropped = context.getImageData(0, 0, canvas.width, maxY);
         canvas.height = maxY;
         context.putImageData(cropped, 0, 0);
