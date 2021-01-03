@@ -1,6 +1,7 @@
 import {exec} from "child_process";
 import fs from "fs";
 import path from "path";
+import fetch from "node-fetch";
 import {escapeForBash, generateUUID} from "./utility.js";
 
 const PRINTER_NAME = "Pi Thermal";
@@ -72,5 +73,12 @@ export default class Printer {
                 });
             });
         });
+    }
+
+    async printImageFromURL(url){
+        const extension = url.split('.').pop();
+        const res = await fetch(url);
+        const buffer = await res.buffer();
+        return await this.printImageFromBuffer(buffer, extension);
     }
 }

@@ -20,3 +20,6 @@ export const DISCORD_RATE_LIMIT = 30 * 60 * 1000;
 export const DISCORD_ADMIN_UIDS = [
     
 ];
+
+// Any image sent from discord with an aspect ratio (width/height) less than this will be rejected. Set to 0 for no limit
+export const MINIMUM_IMAGE_ASPECT = 1 / 2;

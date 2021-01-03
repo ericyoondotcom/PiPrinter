@@ -1,6 +1,6 @@
 import DiscordAPI from "discord.js";
 import canvasLib from "canvas";
-import {DISCORD_TOKEN, ALLOWED_DISCORD_CHANNELS, MAX_DISCORD_MESSAGE_HEIGHT, DISCORD_ADMIN_UIDS, DISCORD_RATE_LIMIT} from "../config.js";
+import {DISCORD_TOKEN, ALLOWED_DISCORD_CHANNELS, MAX_DISCORD_MESSAGE_HEIGHT, DISCORD_ADMIN_UIDS, DISCORD_RATE_LIMIT, MINIMUM_IMAGE_ASPECT} from "../config.js";
 import Printer from "./printer.js";
 import { getCanvasWordWrapLines } from "./utility.js";
 
@@ -40,6 +40,7 @@ export default class Discord {
     onMessage = async (msg) => {
         if(!ALLOWED_DISCORD_CHANNELS.includes(msg.channel.id)) return;
         if(msg.author.bot) return;
+        console.log("Processing message from " + msg.author.username);
         if(!this.isAdmin(msg.author.id) && (msg.author.id in this.lastMessageTimestamps)){
             const difference = (Date.now() - this.lastMessageTimestamps[msg.author.id]);
             if(difference < DISCORD_RATE_LIMIT){
@@ -48,10 +49,35 @@ export default class Discord {
                 return;
             }
         }
+        let hasImage = false;
+        let attachment = null;
+        if(msg.attachments.size > 0){
+            attachment = msg.attachments.first();
+            if(attachment.width != null && attachment.height != null){
+                const IMAGE_EXTENSIONS = ["png", "jpg", "jpeg", "gif"];
+                for(let i of IMAGE_EXTENSIONS){
+                    if(attachment.name.toLowerCase().endsWith(i)){
+                        hasImage = true;
+                        break;
+                    }
+                }
+            }
+        }
+        if(hasImage){
+            if(attachment.width / attachment.height < MINIMUM_IMAGE_ASPECT && MINIMUM_IMAGE_ASPECT > 0){
+                msg.react("❌");
+                msg.channel.send(`<@${msg.author.id}>, your image is too tall! Please pick an image with a wider aspect ratio.`);
+                return;
+            }
+        }
+
         this.lastMessageTimestamps[msg.author.id] = Date.now();
         try {
             // await this.printer.printStringUsingCUPS(msg.cleanContent);
             await this.printMessageFancy(msg);
+            if(hasImage){
+                await this.printer.printImageFromURL(attachment.url);
+            }
             await msg.react("✅");
         } catch(e){
             console.error(e);
@@ -103,7 +129,13 @@ export default class Discord {
         context.putImageData(cropped, 0, 0);
         
         const buffer = canvas.toBuffer("image/png");
-        this.printer.printImageFromBuffer(buffer, "png");
+        try {
+            await this.printer.printImageFromBuffer(buffer, "png");
+        } catch(e) {
+            console.error(e);
+            return;
+        }
+        return true;
     }
 
     isAdmin = (uid) => DISCORD_ADMIN_UIDS.includes(uid);
