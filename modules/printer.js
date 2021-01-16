@@ -3,8 +3,7 @@ import fs from "fs";
 import path from "path";
 import fetch from "node-fetch";
 import {escapeForBash, generateUUID} from "./utility.js";
-
-const PRINTER_NAME = "Pi Thermal";
+import {PRINTER_NAME} from "../config.js";
 
 export default class Printer {
     
@@ -22,7 +21,9 @@ export default class Printer {
                     reject(err1);
                     return;
                 }
-                exec(`lp -o fit-to-page -t ${jobId} ${tempPath}`, (err2, stdout, stderr) => {
+                exec(`lp -d ${PRINTER_NAME} -o fit-to-page -t ${jobId} ${tempPath}`, (err2, stdout, stderr) => {
+                    console.log(stdout);
+                    console.error(stderr);
                     if(err2){
                         console.error(err2);
                         reject(err2);
@@ -56,7 +57,9 @@ export default class Printer {
                     reject(err1);
                     return;
                 }
-                exec(`lp -o fit-to-page -o orientation-requested=3 -t ${jobId} ${tempPath}`, (err2, stdout, stderr) => {
+                exec(`lp -d ${PRINTER_NAME} -o fit-to-page -o orientation-requested=3 -t ${jobId} ${tempPath}`, (err2, stdout, stderr) => {
+                    console.log(stdout);
+                    console.error(stderr);
                     if(err2){
                         console.error(err2);
                         reject(err2);

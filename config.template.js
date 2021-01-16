@@ -1,3 +1,6 @@
+// The name of your printer device. To get a list of CUPS printer, use `$ lpstat -p -d`
+export const PRINTER_NAME = "";
+
 export const DISCORD_TOKEN = "XXXXX";
 
 // A list of valid access tokens that clients can use to interact with the API.
