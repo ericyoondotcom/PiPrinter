@@ -20,3 +20,7 @@ Generally, I followed [this guide](https://learn.adafruit.com/networked-thermal-
 serial:/dev/usb/lp0?baud=9600
 ```
 (This is the printer URI that worked for me, but your path and baud rate may vary)
+
+## Setting Up Google Calendar integration
+1. Follow the [Create Desktop application credentials](https://developers.google.com/workspace/guides/create-credentials#desktop) guide and save the JSON client secret file as `google_credentials.json`.
+2. 

@@ -1,3 +1,6 @@
 node_modules/
 config.js
 .temp-queue
+
+google_credentials.json
+google_token.json

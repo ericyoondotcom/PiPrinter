@@ -57,6 +57,7 @@ export default class Printer {
                     reject(err1);
                     return;
                 }
+
                 exec(`lp -d ${PRINTER_NAME} -o fit-to-page -o orientation-requested=3 -t ${jobId} ${tempPath}`, (err2, stdout, stderr) => {
                     console.log(stdout);
                     console.error(stderr);

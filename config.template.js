@@ -26,3 +26,9 @@ export const DISCORD_ADMIN_UIDS = [
 
 // Any image sent from discord with an aspect ratio (width/height) less than this will be rejected. Set to 0 for no limit
 export const MINIMUM_IMAGE_ASPECT = 1 / 2;
+
+// A cron schedule for when the daily calendar agenda should automatically print out. Set to an empty string to disable automatic printing.
+export const CALENDAR_AUTO_PRINTOUT_SCHEDULE = "30 7 * * 1-5";
+
+// A list of Google Calendar IDs to fetch events from.
+export const CALENDAR_IDS = [];

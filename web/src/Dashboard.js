@@ -1,6 +1,7 @@
 import React from "react";
 import { Button, Divider, Grid, Header, Icon, Segment, TextArea } from "semantic-ui-react";
 import { API_ENDPOINT_BASE, loadAuthFromCookies } from "./shared";
+import CalendarWidget from "./CalendarWidget";
 
 class Dashboard extends React.Component {
     constructor(props){
@@ -126,6 +127,7 @@ class Dashboard extends React.Component {
                                     this.uploadInput.current.click();
                                 }}  />
                             </Segment>
+                            <CalendarWidget authToken={this.authToken} />
                         </Grid.Column>
                     </Grid.Row>
                 </Grid>

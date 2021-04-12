@@ -9,9 +9,10 @@ const PORT = 1234;
 
 export default class Server {
 	
-	constructor(printer){
+	constructor(printer, calendar){
 		this.dirname = import.meta.url.split(":")[1];
 		this.printer = printer;
+		this.calendar = calendar;
 		this.app = express();
 		this.upload = multer();
 		this.registerAppListeners();
@@ -88,6 +89,66 @@ export default class Server {
 			const extension = path.extname(file.originalname);
 			try {
 				await this.printer.printImageFromBuffer(file.buffer, extension);
+			} catch(e) {
+				console.error(e);
+				res.status(500).end();
+				return;
+			}
+			res.status(200).end();
+		});
+
+		this.app.post("/api/print_calendar", async (req, res) => {
+			if(!this.validateAuth(req.headers.authorization)) {
+				res.status(401).end();
+				return;
+			}
+
+			if(!this.calendar.accessTokenObtained){
+				res.status(400).json({
+					status: "not_authorized",
+					authorizationUrl: await this.calendar.getAuthURL()
+				});
+				return;
+			}
+
+			try {
+				await this.calendar.printSchedule();
+			} catch(e) {
+				console.error(e);
+				res.status(500).end();
+				return;
+			}
+			res.status(200).end();
+		});
+
+		this.app.post("/api/set_google_auth_code", async (req, res) => {
+			if(!this.validateAuth(req.headers.authorization)) {
+				res.status(401).end();
+				return;
+			}
+			if(this.calendar.accessTokenObtained){
+				res.status(409).send("Google Calendar has already been authorized.");
+				return;
+			}
+			if(req.headers["content-type"] !== "application/json"){
+				res.status(400).send("Content-Type header must be set to `application/json`");
+				return;
+			}
+			const body = req.body;
+			if(body == null){
+				res.status(400).send("No JSON body provided");
+				return;
+			}
+			if(!("code" in body)){
+				res.status(400).send("No `code` field in body provided.");
+				return;
+			}
+			if((typeof body.code) !== "string"){
+				res.status(400).send("`code` field is not of type `string`");
+				return;
+			}
+			try {
+				await this.calendar.completeAuthFlow(body.code);
 			} catch(e) {
 				console.error(e);
 				res.status(500).end();
