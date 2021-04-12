@@ -1,17 +1,19 @@
 import express from "express";
 import cors from "cors";
 import path from "path";
+import multer from "multer";
 
 import {API_ACCESS_TOKENS} from "../config.js";
 
 const PORT = 1234;
 
 export default class Server {
-
+	
 	constructor(printer){
 		this.dirname = import.meta.url.split(":")[1];
 		this.printer = printer;
 		this.app = express();
+		this.upload = multer();
 		this.registerAppListeners();
 	}
 
@@ -39,7 +41,6 @@ export default class Server {
 				res.status(401).end();
 				return;
 			}
-
 			if(req.headers["content-type"] !== "application/json"){
 				res.status(400).send("Content-Type header must be set to `application/json`");
 				return;
@@ -50,12 +51,10 @@ export default class Server {
 				res.status(400).send("No JSON body provided");
 				return;
 			}
-
 			if(!("text" in body)){
 				res.status(400).send("No `text` field in body provided.");
 				return;
 			}
-
 			if((typeof body.text) !== "string"){
 				res.status(400).send("Text field is not of type `string`");
 				return;
@@ -68,7 +67,32 @@ export default class Server {
 				res.status(500).end();
 				return;
 			}
+			res.status(200).end();
+		});
 
+		this.app.post("/api/send_file", this.upload.single("file"), async (req, res) => {
+			if(!this.validateAuth(req.headers.authorization)) {
+				res.status(401).end();
+				return;
+			}
+
+			// if(req.headers["content-type"] !== "multipart/form-data"){
+			// 	res.status(400).send("Content-Type header must be set to `multipart/form-data`");
+			// 	return;
+			// }
+			const file = req.file;
+			if(file == null){
+				res.status(400).send("No file present in body.");
+				return;
+			}
+			const extension = path.extname(file.originalname);
+			try {
+				await this.printer.printImageFromBuffer(file.buffer, extension);
+			} catch(e) {
+				console.error(e);
+				res.status(500).end();
+				return;
+			}
 			res.status(200).end();
 		});
 

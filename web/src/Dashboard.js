@@ -7,9 +7,62 @@ class Dashboard extends React.Component {
         super(props);
         this.state = {
             loading: false,
-            textVal: ""
+            textVal: "",
+            dropHovering: false
         };
+        this.uploadInput = React.createRef();
         this.authToken = loadAuthFromCookies(true);
+    }
+
+    onDrop = (e) => {
+        e.preventDefault();
+        this.setState({dropHovering: false});
+        if(e.dataTransfer.length == 0) return;
+        const file = e.dataTransfer.files[0];
+        this.uploadFile(file);
+    }
+
+    onInputChange = (e) => {
+        const filelist = e.target.files;
+        if(filelist.length == 0) return;
+        const file = filelist[0];
+        this.uploadFile(file);
+    }
+
+    uploadFile = (file) => {
+        this.setState({loading: true});
+        const type = file["type"];
+        const formData = new FormData();
+        formData.append("file", file);
+
+        fetch(API_ENDPOINT_BASE + "send_file", {
+            headers: {
+                "Authorization": "Bearer " + this.authToken
+                // Content type should automatically be set to multipart/form-data
+            },
+            method: "POST",
+            body: formData
+        }).then((data) => {
+            console.log(data.status);
+            data.text().then(console.log);
+            if(!data.ok){
+                if(data.status == 401){
+                    window.location = "/auth";
+                    return;
+                }
+                alert("Received an error response from server.");
+            }
+            this.setState({loading: false});
+        });
+    }
+
+    onDragLeave = (e) => {
+        this.setState({dropHovering: false});
+    }
+
+    onDragOver = (e) => {
+        e.preventDefault();
+        this.setState({dropHovering: true});
     }
     
     onTextSubmit = () => {
@@ -60,13 +113,18 @@ class Dashboard extends React.Component {
                             <Button floated="right" positive content="Send!" labelPosition="right" icon="paper plane" disabled={this.state.textVal.length == 0} loading={this.state.loading} onClick={this.onTextSubmit} />
                         </Grid.Column>
                         <Grid.Column>
-                            <Segment placeholder>
+                            <Segment placeholder inverted={this.state.dropHovering} onDrop={this.onDrop} onDragLeave={this.onDragLeave} onDragOver={this.onDragOver}>
+                                <input type="file" accept="*" style={{
+                                    display: "none"
+                                }} ref={this.uploadInput} onChange={this.onInputChange} />
                                 <Header size="large" icon>
-                                    <Icon name="image outline" />
-                                    Drop an image here...
+                                    <Icon name="file outline" />
+                                    Drop a file here...
                                 </Header>
                                 <Divider hidden />
-                                <Button content="Select file" icon="folder" labelPosition="left" />
+                                <Button content="Select file" icon="folder" labelPosition="left" onClick={() => {
+                                    this.uploadInput.current.click();
+                                }}  />
                             </Segment>
                         </Grid.Column>
                     </Grid.Row>
