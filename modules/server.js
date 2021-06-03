@@ -36,6 +36,21 @@ export default class Server {
 	}
 
 	registerAPIListeners(){
+		this.app.post("/api/cancel_all_jobs", async (req, res) => {
+			if(!this.validateAuth(req.headers.authorization)) {
+				res.status(401).end();
+				return;
+			}
+
+			try {
+				await this.printer.cancelAllJobs();
+			} catch(e) {
+				console.error(e);
+				res.status(500).end();
+				return;
+			}
+			res.status(200).end();
+		});
 
 		this.app.post("/api/print_text", async (req, res) => {
 			if(!this.validateAuth(req.headers.authorization)) {

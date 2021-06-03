@@ -85,4 +85,19 @@ export default class Printer {
         const buffer = await res.buffer();
         return await this.printImageFromBuffer(buffer, extension);
     }
+
+    async cancelAllJobs(){
+        return new Promise((resolve, reject) => {
+            exec(`cancel -a ${PRINTER_NAME}`, (err, stdout, stderr) => {
+                console.log(stdout);
+                console.error(stderr);
+                if(err){
+                    console.error(err);
+                    reject(err);
+                    return;
+                }
+                resolve();
+            });
+        });
+    }
 }
