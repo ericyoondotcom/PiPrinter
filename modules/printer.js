@@ -81,7 +81,13 @@ export default class Printer {
 
     async printImageFromURL(url){
         const extension = url.split('.').pop();
-        const res = await fetch(url);
+        let res;
+        try {
+            res = await fetch(url);
+        } catch(e) {
+            console.error(e);
+            throw new Error("Error fetching file from URL.");
+        }
         const buffer = await res.buffer();
         return await this.printImageFromBuffer(buffer, extension);
     }

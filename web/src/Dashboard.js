@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Divider, Grid, Header, Icon, Segment, TextArea } from "semantic-ui-react";
+import { Button, Divider, Grid, Header, Icon, Segment, TextArea, Input } from "semantic-ui-react";
 import { API_ENDPOINT_BASE, loadAuthFromCookies } from "./shared";
 import CalendarWidget from "./CalendarWidget";
 
@@ -9,6 +9,7 @@ class Dashboard extends React.Component {
         this.state = {
             loading: false,
             textVal: "",
+            imageUrlVal: "",
             dropHovering: false
         };
         this.uploadInput = React.createRef();
@@ -93,6 +94,33 @@ class Dashboard extends React.Component {
         });
     }
 
+    onFileUrlSubmit = () => {
+        if(this.state.imageUrlVal.length == 0) return;
+        this.setState({loading: true});
+        const data = {
+            "url": this.state.imageUrlVal
+        };
+        fetch(API_ENDPOINT_BASE + "print_file_from_url", {
+            headers: {
+                "Authorization": "Bearer " + this.authToken,
+                "Content-Type": "application/json"
+            },
+            method: "POST",
+            body: JSON.stringify(data)
+        }).then((data) => {
+            console.log(data.status);
+            data.text().then(console.log);
+            if(!data.ok){
+                if(data.status == 401){
+                    window.location = "/auth";
+                    return;
+                }
+                alert("Received an error response from server.");
+            }
+            this.setState({loading: false, imageUrlVal: ""});
+        });
+    }
+
     cancelJobs = () => {
         this.setState({loading: true});
         fetch(API_ENDPOINT_BASE + "cancel_all_jobs", {
@@ -147,6 +175,12 @@ class Dashboard extends React.Component {
                                 <Button content="Select file" icon="folder" labelPosition="left" onClick={() => {
                                     this.uploadInput.current.click();
                                 }}  />
+                                <Divider hidden />
+                                <Input placeholder="File URL" value={this.state.imageUrlVal} onChange={(event, data) => {
+                                    this.setState({imageUrlVal: data.value});
+                                }} action={
+                                    <Button disabled={this.state.imageUrlVal.length == 0} icon="paper plane" onClick={this.onFileUrlSubmit} />
+                                } />
                             </Segment>
                             <CalendarWidget authToken={this.authToken} />
                             <Segment>
