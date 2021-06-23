@@ -37,7 +37,7 @@ export default class Server {
 
 	registerAPIListeners(){
 		this.app.post("/api/cancel_all_jobs", async (req, res) => {
-			if(!this.validateAuth(req.headers.authorization)) {
+			if(!this.validateAuth(req.headers.authorization, req.query.token)) {
 				res.status(401).end();
 				return;
 			}
@@ -53,7 +53,7 @@ export default class Server {
 		});
 
 		this.app.post("/api/print_text", async (req, res) => {
-			if(!this.validateAuth(req.headers.authorization)) {
+			if(!this.validateAuth(req.headers.authorization, req.query.token)) {
 				res.status(401).end();
 				return;
 			}
@@ -87,7 +87,7 @@ export default class Server {
 		});
 
 		this.app.post("/api/send_file", this.upload.single("file"), async (req, res) => {
-			if(!this.validateAuth(req.headers.authorization)) {
+			if(!this.validateAuth(req.headers.authorization, req.query.token)) {
 				res.status(401).end();
 				return;
 			}
@@ -113,7 +113,8 @@ export default class Server {
 		});
 
 		this.app.post("/api/print_calendar", async (req, res) => {
-			if(!this.validateAuth(req.headers.authorization)) {
+			if(!this.validateAuth(req.headers.authorization, req.query.token)) {
+				req.query
 				res.status(401).end();
 				return;
 			}
@@ -137,7 +138,7 @@ export default class Server {
 		});
 
 		this.app.post("/api/set_google_auth_code", async (req, res) => {
-			if(!this.validateAuth(req.headers.authorization)) {
+			if(!this.validateAuth(req.headers.authorization, req.query.token)) {
 				res.status(401).end();
 				return;
 			}
@@ -180,12 +181,24 @@ export default class Server {
 	/**
 	 * Checks whether an authentication header is valid.
 	 * @param {string} authHeader The Authentication header value passed with the HTTP request.
+	 * @param {string|null|undefined} queryToken The `token` object found in the query string.
 	 * @returns {boolean} True if the authentication is a valid token, false otherwise.
 	 */
-	validateAuth(authHeader){
+	validateAuth(authHeader, queryToken){
 		if(authHeader == undefined || authHeader == null){
-			console.warn("Validate auth failed: token is null or undefined");
-			return false;
+			if(queryToken == undefined || queryToken == null){
+				console.warn("Validate auth failed: token is null or undefined, and query token is missing.");
+				return false;
+			}
+			if((typeof queryToken) !== "string"){
+				console.warn("Validate auth failed: query token is not a string.");
+				return false;
+			}
+			if(!API_ACCESS_TOKENS.includes(queryToken)){
+				console.warn(`Validate auth failed: query token ${queryToken} is not in valid token list`);
+				return false;
+			}
+			return true;
 		}
 		if(!authHeader.startsWith("Bearer")){
 			console.warn("Validate auth failed: token type is not 'Bearer'");
