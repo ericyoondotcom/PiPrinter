@@ -47,7 +47,7 @@ export default class Printer {
      * @param {*} buffer The raw data buffer of the image.
      * @param {*} extension The file type the image data is in, for example "png"
      */
-    printImageFromBuffer(buffer, extension){
+    printImageFromBuffer(buffer, extension, addToQueue){
         const jobId = generateUUID();
         return new Promise((resolve, reject) => {
             const tempPath = path.normalize(`${this.dirname}/../../.temp-queue/${jobId}.${extension}`);
@@ -57,7 +57,10 @@ export default class Printer {
                     reject(err1);
                     return;
                 }
-
+                if(addToQueue === true){
+                    resolve();
+                    return;
+                }
                 exec(`lp -d ${PRINTER_NAME} -o fit-to-page -o orientation-requested=3 -t ${jobId} ${tempPath}`, (err2, stdout, stderr) => {
                     console.log(stdout);
                     console.error(stderr);
@@ -79,7 +82,7 @@ export default class Printer {
         });
     }
 
-    async printImageFromURL(url){
+    async printImageFromURL(url, addToQueue){
         const extension = url.split('.').pop();
         let res;
         try {
@@ -89,7 +92,42 @@ export default class Printer {
             throw new Error("Error fetching file from URL.");
         }
         const buffer = await res.buffer();
-        return await this.printImageFromBuffer(buffer, extension);
+        return await this.printImageFromBuffer(buffer, extension, addToQueue);
+    }
+
+    async flushQueue(){
+        return new Promise((resolve, reject) => {
+            const tempPath = path.normalize(`${this.dirname}/../../.temp-queue`);
+            fs.readdir(tempPath, (err1, files) => {
+                if(err1){
+                    console.error(err1);
+                    reject(err1);
+                    return;
+                }
+                Promise.allSettled(files.map(filename => {
+                    const fullPath = path.normalize(`${tempPath}/${filename}`);
+                    return new Promise((resolve, reject) => {
+                        exec(`lp -d ${PRINTER_NAME} -o fit-to-page -o orientation-requested=3 -t ${filename} ${fullPath}`, (err2, stdout, stderr) => {
+                            console.log(stdout);
+                            console.error(stderr);
+                            if(err2){
+                                console.error(err2);
+                                reject(err2);
+                                return;
+                            }
+                            fs.unlink(fullPath, (err3) => {
+                                if(err3) {
+                                    console.error(err3);
+                                    reject(err3);
+                                    return;
+                                }
+                                resolve();
+                            });
+                        });
+                    });
+                })).then(resolve, reject);
+            });
+        });
     }
 
     async cancelAllJobs(){

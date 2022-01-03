@@ -52,6 +52,22 @@ export default class Server {
 			res.status(200).end();
 		});
 
+		this.app.post("/api/flush_queue", async (req, res) => {
+			if(!this.validateAuth(req.headers.authorization, req.query.token)) {
+				res.status(401).end();
+				return;
+			}
+
+			try {
+				await this.printer.flushQueue();
+			} catch(e) {
+				console.error(e);
+				res.status(500).end();
+				return;
+			}
+			res.status(200).end();
+		});
+
 		this.app.post("/api/print_text", async (req, res) => {
 			if(!this.validateAuth(req.headers.authorization, req.query.token)) {
 				res.status(401).end();

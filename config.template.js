@@ -24,6 +24,12 @@ export const DISCORD_ADMIN_UIDS = [
     
 ];
 
+// Set to true to have Discord messages added to a queue to be printed out when it's flushed.
+export const DISCORD_ADDS_TO_QUEUE = true;
+
+// The user to DM whenever a print job is added via Discord. Set to "" to disable.
+export const DISCORD_NOTIFICATION_USER = "267088700373073920";
+
 // Any image sent from discord with an aspect ratio (width/height) less than this will be rejected. Set to 0 for no limit
 export const MINIMUM_IMAGE_ASPECT = 1 / 2;
 

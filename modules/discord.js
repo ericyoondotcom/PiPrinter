@@ -1,6 +1,6 @@
 import DiscordAPI from "discord.js";
 import canvasLib from "canvas";
-import {DISCORD_TOKEN, ALLOWED_DISCORD_CHANNELS, MAX_DISCORD_MESSAGE_HEIGHT, DISCORD_ADMIN_UIDS, DISCORD_RATE_LIMIT, MINIMUM_IMAGE_ASPECT} from "../config.js";
+import {DISCORD_TOKEN, ALLOWED_DISCORD_CHANNELS, MAX_DISCORD_MESSAGE_HEIGHT, DISCORD_ADMIN_UIDS, DISCORD_RATE_LIMIT, MINIMUM_IMAGE_ASPECT, DISCORD_ADDS_TO_QUEUE, DISCORD_NOTIFICATION_USER} from "../config.js";
 import Printer from "./printer.js";
 import { getCanvasWordWrapLines } from "./utility.js";
 
@@ -26,8 +26,9 @@ export default class Discord {
     }
 
     registerBotListeners(){
-        this.bot.on("ready", () => {
+        this.bot.on("ready", async () => {
             console.log("Discord bot up!");
+            this.notificationUser = DISCORD_NOTIFICATION_USER.length > 0 ? await this.bot.users.fetch(DISCORD_NOTIFICATION_USER) : null;
         });
 
         this.bot.on("message", this.onMessage);
@@ -76,9 +77,12 @@ export default class Discord {
             // await this.printer.printStringUsingCUPS(msg.cleanContent);
             await this.printMessageFancy(msg);
             if(hasImage){
-                await this.printer.printImageFromURL(attachment.url);
+                await this.printer.printImageFromURL(attachment.url, DISCORD_ADDS_TO_QUEUE);
             }
             await msg.react("✅");
+            if(this.notificationUser != null){
+                await this.notificationUser.send(`${msg.author.username} printed a message!`);
+            }
         } catch(e){
             console.error(e);
             return;
@@ -130,7 +134,7 @@ export default class Discord {
         
         const buffer = canvas.toBuffer("image/png");
         try {
-            await this.printer.printImageFromBuffer(buffer, "png");
+            await this.printer.printImageFromBuffer(buffer, "png", DISCORD_ADDS_TO_QUEUE);
         } catch(e) {
             console.error(e);
             return;

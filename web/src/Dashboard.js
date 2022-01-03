@@ -142,6 +142,27 @@ class Dashboard extends React.Component {
         });
     }
 
+    flushQueue = () => {
+        this.setState({loading: true});
+        fetch(API_ENDPOINT_BASE + "flush_queue", {
+            headers: {
+                "Authorization": "Bearer " + this.authToken
+            },
+            method: "POST"
+        }).then((data) => {
+            console.log(data.status);
+            data.text().then(console.log);
+            if(!data.ok){
+                if(data.status == 401){
+                    window.location = "/auth";
+                    return;
+                }
+                alert("Received an error response from server.");
+            }
+            this.setState({loading: false, textVal: ""});
+        });
+    }
+
     render(){
         return (
             <div style={{
@@ -185,6 +206,8 @@ class Dashboard extends React.Component {
                             <CalendarWidget authToken={this.authToken} />
                             <Segment>
                                 <Header size="medium">Utility</Header>
+                                <Button primary size="large" icon="print" labelPosition="left" content="Flush queue" onClick={this.flushQueue} />
+                                <div style={{marginTop: "10px"}} />
                                 <Button negative size="large" icon="trash" labelPosition="left" content="Cancel all jobs" onClick={this.cancelJobs} />
                             </Segment>
                         </Grid.Column>
