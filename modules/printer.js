@@ -104,10 +104,15 @@ export default class Printer {
                     reject(err1);
                     return;
                 }
-                Promise.allSettled(files.map(filename => {
-                    const fullPath = path.normalize(`${tempPath}/${filename}`);
+                files = files.map(i => path.normalize(`${tempPath}/${i}`));
+                files = files.sort((a, b) => {
+                    const timeA = fs.statSync(a).mtime.getTime();
+                    const timeB = fs.statSync(b).mtime.getTime();
+                    return timeA - timeB;
+                });
+                Promise.allSettled(files.map(fullPath => {
                     return new Promise((resolve, reject) => {
-                        exec(`lp -d ${PRINTER_NAME} -o fit-to-page -o orientation-requested=3 -t ${filename} ${fullPath}`, (err2, stdout, stderr) => {
+                        exec(`lp -d ${PRINTER_NAME} -o fit-to-page -o orientation-requested=3 ${fullPath}`, (err2, stdout, stderr) => {
                             console.log(stdout);
                             console.error(stderr);
                             if(err2){
